@@ -1059,6 +1059,7 @@ void New_Category(int CHOICE, string options[]){
     cout << " > ";
     getline(cin, name);
     if(name=="<empty>"){cout << "Wez moze cos innego, ta nazwe juz zaklepalem..."; goto ur_empty;}
+    if(name.length()>52){cout << "Ta nazwa jest troche za dluga..."; goto ur_empty;}
     fstream file_opt;
     file_opt.open("Options.txt", ios::out | ios::app);
     if(!file_opt.good()){
