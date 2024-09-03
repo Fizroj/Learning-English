@@ -4,20 +4,17 @@
 //vector. size clear front - first element, back - last element, empty - checks if empty, capacity - size of a vector memorywise
 //vector.begin() or .end() - 1 ; after that just like any regular pointer
 #include <iostream>
-#include <typeinfo>
 #include <vector>
 #include <fstream>
 #include <ctime>
-#include <math.h>
 #include <cstdlib>
 #include <conio.h>
 #include <windows.h>
-#include <locale>
 #include <queue>
 using namespace std;
-char separate_the_words_in_the_file=432 ;//252;
-char line_end_in_the_file=433; //209;
-char brackets[11]={185, 186, 187, 188, 200, 201, 202, 203, 204, 205, 206};
+const char separate_the_words_in_the_file=432 ;//252; //why doesn't unsigned work???
+const char line_end_in_the_file=433; //209;
+const char brackets[11]={185, 186, 187, 188, 200, 201, 202, 203, 204, 205, 206};
 string files[10]={"POL_1.txt", "ENG_1.txt", "POL_2.txt", "ENG_2.txt", "POL_3.txt", "ENG_3.txt", "POL_4.txt", "ENG_4.txt", "POL_5.txt", "ENG_5.txt"};
 class Word
 {
@@ -68,7 +65,7 @@ class Word
     }
     ~Word(){}
 };
-void Read(vector<Word> &YE, string file1, string file2){
+void Read(vector<Word> &PEW, string file1, string file2){
     fstream file_pol;
     fstream file_eng;
     //setlocale(LC_ALL, "");
@@ -76,11 +73,11 @@ void Read(vector<Word> &YE, string file1, string file2){
     file_eng.open(file2.c_str(), ios::out | ios::app);
     if (!file_pol.good()) {
         cerr << "Nie mozna otworzyc pliku" << endl;
-        return;
+        exit(0);
     }
     if (!file_eng.good()) {
         cerr << "Nie mozna otworzyc pliku" << endl;
-        return;
+        exit(0);
     }
     file_pol.close();
     file_eng.close();
@@ -88,11 +85,11 @@ void Read(vector<Word> &YE, string file1, string file2){
     file_eng.open(file2.c_str(), ios::in);
     if (!file_pol.good()) {
         cerr << "Nie mozna otworzyc pliku" << endl;
-        return;
+        exit(0);
     }
     if (!file_eng.good()) {
         cerr << "Nie mozna otworzyc pliku" << endl;
-        return;
+        exit(0);
     }
     int i=0;
     string line;
@@ -100,9 +97,9 @@ void Read(vector<Word> &YE, string file1, string file2){
     temp2.push_back(" ");
     Word temp("temp", temp2); // fix later that crap
     while(getline(file_pol, line)){
-        YE.push_back(temp);
+        PEW.push_back(temp);
         //YE[i].pl_word=line;
-        YE[i].setPL(line);
+        PEW[i].setPL(line);
         i++;
     }
     i=0;
@@ -118,13 +115,13 @@ void Read(vector<Word> &YE, string file1, string file2){
             }
             else if(line[j]==separate_the_words_in_the_file){
                 if(check){
-                    YE[i].eng_words.pop_back();
-                    YE[i].eng_words.push_back(egl);
+                    PEW[i].eng_words.pop_back();
+                    PEW[i].eng_words.push_back(egl);
                     egl="";
                     j=j+2;
                     check=false;
                 }else{
-                    YE[i].eng_words.push_back(egl);
+                    PEW[i].eng_words.push_back(egl);
                     egl="";
                     j=j+2;
                 }
@@ -222,6 +219,36 @@ int Read_Opt(string options[]){
     file_opt.close();
     return previous; //returning what was previous alias the user have been using before closing the program
 }
+void Remove_the_Word(vector<Word> PEW, string file_name_p, string file_name_n, int line_n){ //work on this, bc it doesn't erase the last word supposedly already erased...
+    fstream file_p;
+    fstream file_e;
+    string one_line;
+    file_p.open(file_name_p.c_str(), ios::out);
+    if (!file_p.good()) {
+        cerr << "Nie mozna otworzyc pliku" << endl;
+        return;
+    }
+    file_e.open(file_name_n.c_str(), ios::out);
+    if (!file_e.good()) {
+        cerr << "Nie mozna otworzyc pliku" << endl;
+        return;
+    }
+    int j=0;
+    for(int i=0; i<PEW.size(); i++){
+        if(i==line_n){continue;}
+        while(j<PEW.at(i).eng_words.size()){
+            one_line=one_line+PEW.at(i).eng_words.at(j)+separate_the_words_in_the_file+' ';
+            j++;
+        }
+        j=0;
+        one_line=one_line+line_end_in_the_file;
+        file_p << PEW.at(i).getPL() << endl;
+        file_e << one_line << endl;
+        one_line="";
+    }
+    file_p.close();
+    file_e.close();
+}
 bool Is_There(int A, queue<int> B){
     int S=B.size();
     for(int i=0; i<S; i++){
@@ -231,8 +258,8 @@ bool Is_There(int A, queue<int> B){
     }
     return false;
 }
-void Revise(vector<Word> YE){
-    int pool=YE.size(); //all avaible Words
+void Revise(vector<Word> PEW){
+    int pool=PEW.size(); //all avaible Words
     int ans_id; //id of a word answered coorectly
     int que; //question id
     int limit=pool-1; //limit of questions blocked to prevent back-to-back repeating
@@ -253,15 +280,15 @@ void Revise(vector<Word> YE){
         been_already.push(que);
         if(been_already.size()>limit) been_already.pop();
         //cout << been_already.size();
-        ans=YE.at(que).Ask();
+        ans=PEW.at(que).Ask();
         if(ans=="X"){break;}
-        if(YE.at(que).Check(ans)){
+        if(PEW.at(que).Check(ans)){
             cout << "Dobra odpowiedz! Inne poprawne odpowiedzi: ";
-            YE.at(que).Other_Ones(ans);
+            PEW.at(que).Other_Ones(ans);
         }
         else{
             cout << "To nie to... Poprawne odpowiedzi to: ";
-            YE.at(que).Other_Ones("X");
+            PEW.at(que).Other_Ones("X");
         }
     }
 }
@@ -354,14 +381,14 @@ void Add(vector<Word> &YE, string filepol, string fileeng){
     file_polB.close();
     file_engB.close();
 }
-void Illustrate(vector<Word> YE){
-    for(int i=0; i<YE.size(); i++){ //that will be cout's function job
-        YE[i].Say();
+void Illustrate(vector<Word> PEW){
+    for(int i=0; i<PEW.size(); i++){ //that will be cout's function job
+        cout << i+1 << ". ";
+        PEW[i].Say();
     }
-    getch();
     return;
 }
-void case1(int capa, int wide, int prev, string options[]){
+void Cases_of_menu(int capa, int wide, int prev, string options[], int which){
     system("cls");
     cout << "Acceptable inputs: down arrow, up arrow or Enter." << "\n";
     cout << "Current category: ";
@@ -382,40 +409,107 @@ void case1(int capa, int wide, int prev, string options[]){
         cout << brackets[1] << "\n";
     }
     //
-    cout << brackets[1] << " > ";
-    cout << "Revise Words";
-    for(int j=0; j<capa-15; j++){
+    if(which==1){
+        cout << brackets[1] << " > ";
+        cout << "Revise Words";
+        for(int j=0; j<capa-15; j++){
         cout << " ";
+        }
+        cout << brackets[1] << "\n";
     }
-    cout << brackets[1] << "\n";
+    else{
+        cout << brackets[1] << "   ";
+        cout << "Revise Words";
+        for(int j=0; j<capa-15; j++){
+        cout << " ";
+        }
+        cout << brackets[1] << "\n";
+    }
     //
-    cout << brackets[1] << "   ";
-    cout << "Add New Words";
-    for(int j=0; j<capa-16; j++){
+    if(which==2){
+        cout << brackets[1] << " > ";
+        cout << "Add New Words";
+        for(int j=0; j<capa-16; j++){
         cout << " ";
+        }
+        cout << brackets[1] << "\n";
     }
-    cout << brackets[1] << "\n";
+    else{
+        cout << brackets[1] << "   ";
+        cout << "Add New Words";
+        for(int j=0; j<capa-16; j++){
+        cout << " ";
+        }
+        cout << brackets[1] << "\n";
+    }
     //
-    cout << brackets[1] << "   ";
-    cout << "Display All Words";
-    for(int j=0; j<capa-20; j++){
+    if(which==3){
+        cout << brackets[1] << " > ";
+        cout << "Remove Words";
+        for(int j=0; j<capa-15; j++){
         cout << " ";
+        }
+        cout << brackets[1] << "\n";
     }
-    cout << brackets[1] << "\n";
+    else{
+        cout << brackets[1] << "   ";
+        cout << "Remove Words";
+        for(int j=0; j<capa-15; j++){
+        cout << " ";
+        }
+        cout << brackets[1] << "\n";
+    }
     //
-    cout << brackets[1] << "   ";
-    cout << "Choose category";
-    for(int j=0; j<capa-18; j++){
+    if(which==4){
+        cout << brackets[1] << " > ";
+        cout << "Display All Words";
+        for(int j=0; j<capa-20; j++){
         cout << " ";
+        }
+        cout << brackets[1] << "\n";
     }
-    cout << brackets[1] << "\n";
+    else{
+        cout << brackets[1] << "   ";
+        cout << "Display All Words";
+        for(int j=0; j<capa-20; j++){
+        cout << " ";
+        }
+        cout << brackets[1] << "\n";
+    }
     //
-    cout << brackets[1] << "   ";
-    cout << "Exit";
-    for(int j=0; j<capa-7; j++){
+    if(which==5){
+        cout << brackets[1] << " > ";
+        cout << "Choose Category";
+        for(int j=0; j<capa-18; j++){
         cout << " ";
+        }
+        cout << brackets[1] << "\n";
     }
-    cout << brackets[1] << "\n";
+    else{
+        cout << brackets[1] << "   ";
+        cout << "Choose Category";
+        for(int j=0; j<capa-18; j++){
+        cout << " ";
+        }
+        cout << brackets[1] << "\n";
+    }
+    //
+    if(which==6){
+        cout << brackets[1] << " > ";
+        cout << "Exit";
+        for(int j=0; j<capa-7; j++){
+        cout << " ";
+        }
+        cout << brackets[1] << "\n";
+    }
+    else{
+        cout << brackets[1] << "   ";
+        cout << "Exit";
+        for(int j=0; j<capa-7; j++){
+        cout << " ";
+        }
+        cout << brackets[1] << "\n";
+    }
     //
     for(int i=0; i<wide; i++){ //formula for the empty line
         cout << brackets[1];
@@ -432,291 +526,7 @@ void case1(int capa, int wide, int prev, string options[]){
     cout << brackets[3];
     cout << endl;
 }
-void case2(int capa, int wide, int prev, string options[]){
-    system("cls");
-    cout << "Acceptable inputs: down arrow, up arrow or Enter." << "\n";
-    cout << "Current category: ";
-    if(prev==0){cout << "<not created/chosen>" << "\n";}
-    else if(options[prev-1]=="<empty>"){cout << "<not created/chosen>" << "\n";}
-    else cout << options[prev-1] << "\n";
-    cout << brackets[5];  //formula for the top
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[2] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
-            cout << " ";
-        }
-        cout << brackets[1] << "\n";
-    }
-    //
-    cout << brackets[1] << "   ";
-    cout << "Revise Words";
-    for(int j=0; j<capa-15; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << " > ";
-    cout << "Add New Words";
-    for(int j=0; j<capa-16; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Display All Words";
-    for(int j=0; j<capa-20; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Choose category";
-    for(int j=0; j<capa-18; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Exit";
-    for(int j=0; j<capa-7; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
-            cout << " ";
-        }
-        cout << brackets[1] << "\n";
-    }
-    //
-    cout << brackets[4];
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[3];
-    cout << endl;
-}
-void case3(int capa, int wide, int prev, string options[]){
-    system("cls");
-    cout << "Acceptable inputs: down arrow, up arrow or Enter." << "\n";
-    cout << "Current category: ";
-    if(prev==0){cout << "<not created/chosen>" << "\n";}
-    else if(options[prev-1]=="<empty>"){cout << "<not created/chosen>" << "\n";}
-    else cout << options[prev-1] << "\n";
-    cout << brackets[5];  //formula for the top
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[2] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
-            cout << " ";
-        }
-        cout << brackets[1] << "\n";
-    }
-    //
-    cout << brackets[1] << "   ";
-    cout << "Revise Words";
-    for(int j=0; j<capa-15; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Add New Words";
-    for(int j=0; j<capa-16; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << " > ";
-    cout << "Display All Words";
-    for(int j=0; j<capa-20; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Choose category";
-    for(int j=0; j<capa-18; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Exit";
-    for(int j=0; j<capa-7; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
-            cout << " ";
-        }
-        cout << brackets[1] << "\n";
-    }
-    //
-    cout << brackets[4];
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[3];
-    cout << endl;
-}
-void case4(int capa, int wide, int prev, string options[]){
-    system("cls");
-    cout << "Acceptable inputs: down arrow, up arrow or Enter." << "\n";
-    cout << "Current category: ";
-    if(prev==0){cout << "<not created/chosen>" << "\n";}
-    else if(options[prev-1]=="<empty>"){cout << "<not created/chosen>" << "\n";}
-    else cout << options[prev-1] << "\n";
-    cout << brackets[5];  //formula for the top
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[2] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
-            cout << " ";
-        }
-        cout << brackets[1] << "\n";
-    }
-    //
-    cout << brackets[1] << "   ";
-    cout << "Revise Words";
-    for(int j=0; j<capa-15; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Add New Words";
-    for(int j=0; j<capa-16; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Display All Words";
-    for(int j=0; j<capa-20; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << " > ";
-    cout << "Choose category";
-    for(int j=0; j<capa-18; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Exit";
-    for(int j=0; j<capa-7; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
-            cout << " ";
-        }
-        cout << brackets[1] << "\n";
-    }
-    //
-    cout << brackets[4];
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[3];
-    cout << endl;
-}
-void case5(int capa, int wide, int prev, string options[]){
-    system("cls");
-    cout << "Acceptable inputs: down arrow, up arrow or Enter." << "\n";
-    cout << "Current category: ";
-    if(prev==0){cout << "<not created/chosen>" << "\n";}
-    else if(options[prev-1]=="<empty>"){cout << "<not created/chosen>" << "\n";}
-    else cout << options[prev-1] << "\n";
-    cout << brackets[5];  //formula for the top
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[2] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
-            cout << " ";
-        }
-        cout << brackets[1] << "\n";
-    }
-    //
-    cout << brackets[1] << "   ";
-    cout << "Revise Words";
-    for(int j=0; j<capa-15; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Add New Words";
-    for(int j=0; j<capa-16; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Display All Words";
-    for(int j=0; j<capa-20; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << "Choose category";
-    for(int j=0; j<capa-18; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << " > ";
-    cout << "Exit";
-    for(int j=0; j<capa-7; j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
-            cout << " ";
-        }
-        cout << brackets[1] << "\n";
-    }
-    //
-    cout << brackets[4];
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[3];
-    cout << endl;
-}
-void case4_1(int capa, int wide, string options[]){
+void Cases_of_categories(int capa, int wide, string options[], int which_2){
     system("cls");
     cout << "Acceptable inputs: down arrow, up arrow or Enter." << "\n" << "\n";
     cout << brackets[5];  //formula for the top
@@ -733,308 +543,90 @@ void case4_1(int capa, int wide, string options[]){
         cout << brackets[1] << "\n";
     }
     //
-    cout << brackets[1] << " > ";
-    cout << options[0];
-    for(int j=0; j<capa-3-(options[0].length()); j++){
-        cout << " ";
+    if(which_2==1){
+        cout << brackets[1] << " > ";
+        cout << options[0];
+        for(int j=0; j<capa-3-(options[0].length()); j++){
+            cout << " ";
+        }
+        cout << brackets[1] << "\n";
     }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[1];
-    for(int j=0; j<capa-3-(options[1].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[2];
-    for(int j=0; j<capa-3-(options[2].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[3];
-    for(int j=0; j<capa-3-(options[3].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[4];
-    for(int j=0; j<capa-3-(options[4].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
+    else{
+         cout << brackets[1] << "   ";
+        cout << options[0];
+        for(int j=0; j<capa-3-(options[0].length()); j++){
             cout << " ";
         }
         cout << brackets[1] << "\n";
     }
     //
-    cout << brackets[4];
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
+    if(which_2==2){
+        cout << brackets[1] << " > ";
+        cout << options[1];
+        for(int j=0; j<capa-3-(options[1].length()); j++){
+            cout << " ";
+        }
+        cout << brackets[1] << "\n";
     }
-    cout << brackets[3];
-    cout << endl;
-}
-void case4_2(int capa, int wide, string options[]){
-    system("cls");
-    cout << "Acceptable inputs: down arrow, up arrow or Enter." << "\n" << "\n";
-    cout << brackets[5];  //formula for the top
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[2] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
+    else{
+         cout << brackets[1] << "   ";
+        cout << options[1];
+        for(int j=0; j<capa-3-(options[1].length()); j++){
             cout << " ";
         }
         cout << brackets[1] << "\n";
     }
     //
-    cout << brackets[1] << "   ";
-    cout << options[0];
-    for(int j=0; j<capa-3-(options[0].length()); j++){
-        cout << " ";
+    if(which_2==3){
+        cout << brackets[1] << " > ";
+        cout << options[2];
+        for(int j=0; j<capa-3-(options[2].length()); j++){
+            cout << " ";
+        }
+        cout << brackets[1] << "\n";
     }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << " > ";
-    cout << options[1];
-    for(int j=0; j<capa-3-(options[1].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[2];
-    for(int j=0; j<capa-3-(options[2].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[3];
-    for(int j=0; j<capa-3-(options[3].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[4];
-    for(int j=0; j<capa-3-(options[4].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
+    else{
+         cout << brackets[1] << "   ";
+        cout << options[2];
+        for(int j=0; j<capa-3-(options[2].length()); j++){
             cout << " ";
         }
         cout << brackets[1] << "\n";
     }
     //
-    cout << brackets[4];
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
+    if(which_2==4){
+        cout << brackets[1] << " > ";
+        cout << options[3];
+        for(int j=0; j<capa-3-(options[3].length()); j++){
+            cout << " ";
+        }
+        cout << brackets[1] << "\n";
     }
-    cout << brackets[3];
-    cout << endl;
-}
-void case4_3(int capa, int wide, string options[]){
-    system("cls");
-    cout << "Acceptable inputs: down arrow, up arrow or Enter." << "\n" << "\n";
-    cout << brackets[5];  //formula for the top
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[2] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
+    else{
+         cout << brackets[1] << "   ";
+        cout << options[3];
+        for(int j=0; j<capa-3-(options[3].length()); j++){
             cout << " ";
         }
         cout << brackets[1] << "\n";
     }
     //
-    cout << brackets[1] << "   ";
-    cout << options[0];
-    for(int j=0; j<capa-3-(options[0].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[1];
-    for(int j=0; j<capa-3-(options[1].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << " > ";
-    cout << options[2];
-    for(int j=0; j<capa-3-(options[2].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[3];
-    for(int j=0; j<capa-3-(options[3].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[4];
-    for(int j=0; j<capa-3-(options[4].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
+    if(which_2==5){
+        cout << brackets[1] << " > ";
+        cout << options[4];
+        for(int j=0; j<capa-3-(options[4].length()); j++){
             cout << " ";
         }
         cout << brackets[1] << "\n";
     }
-    //
-    cout << brackets[4];
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[3];
-    cout << endl;
-}
-void case4_4(int capa, int wide, string options[]){
-    system("cls");
-    cout << "Acceptable inputs: down arrow, up arrow or Enter." << "\n" << "\n";
-    cout << brackets[5];  //formula for the top
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[2] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
+    else{
+         cout << brackets[1] << "   ";
+        cout << options[4];
+        for(int j=0; j<capa-3-(options[4].length()); j++){
             cout << " ";
         }
         cout << brackets[1] << "\n";
     }
-    //
-    cout << brackets[1] << "   ";
-    cout << options[0];
-    for(int j=0; j<capa-3-(options[0].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[1];
-    for(int j=0; j<capa-3-(options[1].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[2];
-    for(int j=0; j<capa-3-(options[2].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << " > ";
-    cout << options[3];
-    for(int j=0; j<capa-3-(options[3].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[4];
-    for(int j=0; j<capa-3-(options[4].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
-            cout << " ";
-        }
-        cout << brackets[1] << "\n";
-    }
-    //
-    cout << brackets[4];
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[3];
-    cout << endl;
-}
-void case4_5(int capa, int wide, string options[]){
-    system("cls");
-    cout << "Acceptable inputs: down arrow, up arrow or Enter." << "\n" << "\n";
-    cout << brackets[5];  //formula for the top
-    for(int i=0; i<capa; i++){
-        cout << brackets[9];
-    }
-    cout << brackets[2] << "\n";
-    //
-    for(int i=0; i<wide; i++){ //formula for the empty line
-        cout << brackets[1];
-        for(int j=0; j<capa; j++){
-            cout << " ";
-        }
-        cout << brackets[1] << "\n";
-    }
-    //
-    cout << brackets[1] << "   ";
-    cout << options[0];
-    for(int j=0; j<capa-3-(options[0].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[1];
-    for(int j=0; j<capa-3-(options[1].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[2];
-    for(int j=0; j<capa-3-(options[2].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << "   ";
-    cout << options[3];
-    for(int j=0; j<capa-3-(options[3].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
-    //
-    cout << brackets[1] << " > ";
-    cout << options[4];
-    for(int j=0; j<capa-3-(options[4].length()); j++){
-        cout << " ";
-    }
-    cout << brackets[1] << "\n";
     //
     for(int i=0; i<wide; i++){ //formula for the empty line
         cout << brackets[1];
@@ -1078,42 +670,46 @@ void New_Category(int CHOICE, string options[]){
     file_opt << line_out << endl;
     file_opt.close();
 }
-int Interface_Choose(vector<Word> &YE, string options[]){
+void Removing_Quest(vector<Word> &PEW, int prev){
+    Illustrate(PEW);
+    int THAT;
+    while(THAT<0 || THAT>PEW.size()){
+    cout << "Ktora linijke usunac? (Podaj jej numer). Jezeli to pomylka, podaj 0: " << endl;
+    cout << " > ";
+    cin >> THAT;
+    if(THAT==0){return;}
+    }
+    Remove_the_Word(PEW, files[(2*prev)-2], files[(2*prev)-1], THAT);
+    PEW.erase(PEW.begin()+THAT-1); //im scared if this crashes
+}
+int Interface_Choose(vector<Word> &PEW, string options[]){
     int capa=60; //length of the window
     int wide=1; //margin for the top and the bottom
     int poss=4; // possibilities of reacting
     //the same drill with switch()
-    case4_1(capa, wide, options);
     short choice_2=0;
+    Cases_of_categories(capa, wide, options, choice_2+1);
     decide_moron_2:
     switch(getch()){
         case 72: {choice_2--; if(choice_2<0){choice_2=poss;}
-            if(choice_2==0) case4_1(capa, wide, options);
-            if(choice_2==1) case4_2(capa, wide, options);
-            if(choice_2==2) case4_3(capa, wide, options);
-            if(choice_2==3) case4_4(capa, wide, options);
-            if(choice_2==4) case4_5(capa, wide, options);
+            Cases_of_categories(capa, wide, options, choice_2+1);
         } break;
         case 80: {choice_2++; if(choice_2>poss){choice_2=0;}
-            if(choice_2==0) case4_1(capa, wide, options);
-            if(choice_2==1) case4_2(capa, wide, options);
-            if(choice_2==2) case4_3(capa, wide, options);
-            if(choice_2==3) case4_4(capa, wide, options);
-            if(choice_2==4) case4_5(capa, wide, options);
+            Cases_of_categories(capa, wide, options, choice_2+1);
         } break;
         case 13: {system("cls");
             cout << "Loading..." << endl;
-            if(choice_2==0) {system("cls"); if(options[choice_2]=="<empty>"){New_Category(choice_2, options);}; YE.clear(); Read(YE, files[0], files[1]); return choice_2+1;} //Read(YE, files[0], files[1]);
-            if(choice_2==1) {system("cls"); if(options[choice_2]=="<empty>"){New_Category(choice_2, options);}; YE.clear(); Read(YE, files[2], files[3]); return choice_2+1;} //Read(YE, files[2], files[3]);
-            if(choice_2==2) {system("cls"); if(options[choice_2]=="<empty>"){New_Category(choice_2, options);}; YE.clear(); Read(YE, files[4], files[5]); return choice_2+1;} //Read(YE, files[4], files[5]);
-            if(choice_2==3) {system("cls"); if(options[choice_2]=="<empty>"){New_Category(choice_2, options);}; YE.clear(); Read(YE, files[6], files[7]); return choice_2+1;} //Read(YE, files[6], files[7]);
-            if(choice_2==4) {system("cls"); if(options[choice_2]=="<empty>"){New_Category(choice_2, options);}; YE.clear(); Read(YE, files[8], files[9]); return choice_2+1;} //Read(YE, files[8], files[9]);
+            if(choice_2==0) {system("cls"); if(options[choice_2]=="<empty>"){New_Category(choice_2, options);}; PEW.clear(); Read(PEW, files[0], files[1]); return choice_2+1;} //Read(YE, files[0], files[1]);
+            if(choice_2==1) {system("cls"); if(options[choice_2]=="<empty>"){New_Category(choice_2, options);}; PEW.clear(); Read(PEW, files[2], files[3]); return choice_2+1;} //Read(YE, files[2], files[3]);
+            if(choice_2==2) {system("cls"); if(options[choice_2]=="<empty>"){New_Category(choice_2, options);}; PEW.clear(); Read(PEW, files[4], files[5]); return choice_2+1;} //Read(YE, files[4], files[5]);
+            if(choice_2==3) {system("cls"); if(options[choice_2]=="<empty>"){New_Category(choice_2, options);}; PEW.clear(); Read(PEW, files[6], files[7]); return choice_2+1;} //Read(YE, files[6], files[7]);
+            if(choice_2==4) {system("cls"); if(options[choice_2]=="<empty>"){New_Category(choice_2, options);}; PEW.clear(); Read(PEW, files[8], files[9]); return choice_2+1;} //Read(YE, files[8], files[9]);
         } break;
         default: {cout << endl; goto decide_moron_2;}
     }
     goto decide_moron_2;
 }
-int Interface(vector<Word> &YE, int prev, string options[]){
+int Interface(vector<Word> &PEW, int prev, string options[]){
     //72 - up_arrow
     //75 - left_arrow
     //80 - down_arrow
@@ -1121,35 +717,28 @@ int Interface(vector<Word> &YE, int prev, string options[]){
     //concept here - either revise some new words, add new ones or cout everything, decision managed here
     int capa=60; //length of the window
     int wide=1; //margin for the top and the bottom
-    int poss=4; // possibilities of reacting
+    int poss=5; // possibilities of reacting
     int last=prev; //last category used before closing
     menu:
-    case1(capa, wide, prev, options);
     short choice=0;
+    Cases_of_menu(capa, wide, prev, options, choice+1);
     //cout << options.size();
     decide_moron:
     switch(getch()){
         case 72: {choice--; if(choice<0){choice=poss;}
-            if(choice==0) case1(capa, wide, prev, options);
-            if(choice==1) case2(capa, wide, prev, options);
-            if(choice==2) case3(capa, wide, prev, options);
-            if(choice==3) case4(capa, wide, prev, options);
-            if(choice==4) case5(capa, wide, prev, options);
+            Cases_of_menu(capa, wide, prev, options, choice+1);
         } break;
         case 80: {choice++; if(choice>poss){choice=0;}
-            if(choice==0) case1(capa, wide, prev, options);
-            if(choice==1) case2(capa, wide, prev, options);
-            if(choice==2) case3(capa, wide, prev, options);
-            if(choice==3) case4(capa, wide, prev, options);
-            if(choice==4) case5(capa, wide, prev, options);
+            Cases_of_menu(capa, wide, prev, options, choice+1);
         } break;
         case 13: {system("cls");
-            cout << "Loading..." << endl;
-            if(choice==0) {system("cls"); if(prev==0){cout << "Wybierz najpierw kategorie!" << endl; system("pause"); goto menu;} else if(YE.empty()){cout << "Nie ma dodanych slowek! Dodaj jakies" << endl; system("pause"); goto menu;} Revise(YE); goto menu;}
-            if(choice==1) {system("cls"); if(prev==0){cout << "Wybierz najpierw kategorie!" << endl; system("pause"); goto menu;}; Add(YE, files[(2*prev)-2], files[(2*prev)-1]); goto menu;}
-            if(choice==2) {system("cls"); if(prev==0){cout << "Wybierz najpierw kategorie!" << endl; system("pause"); goto menu;} else if(YE.empty()){cout << "Nie ma dodanych slowek! Dodaj jakies" << endl; system("pause"); goto menu;} Illustrate(YE); goto menu;}
-            if(choice==3) {system("cls"); last=Interface_Choose(YE, options); prev=last; goto menu;}
-            if(choice==4) {system("cls"); return last;};
+            cout << "Loading...";
+            if(choice==0) {system("cls"); if(prev==0){cout << "Wybierz najpierw kategorie!" << endl; system("pause"); goto menu;} else if(PEW.empty()){cout << "Nie ma dodanych slowek! Dodaj jakies..." << endl; system("pause"); goto menu;} Revise(PEW); goto menu;}
+            if(choice==1) {system("cls"); if(prev==0){cout << "Wybierz najpierw kategorie!" << endl; system("pause"); goto menu;}; Add(PEW, files[(2*prev)-2], files[(2*prev)-1]); goto menu;}
+            if(choice==2) {system("cls"); if(prev==0){cout << "Wybierz najpierw kategorie!" << endl; system("pause"); goto menu;} else if(PEW.empty()){cout << "Nie ma dodanych slowek! Nie masz czego usuwac!" << endl; system("pause"); goto menu;} Removing_Quest(PEW, prev); goto menu;}
+            if(choice==3) {system("cls"); if(prev==0){cout << "Wybierz najpierw kategorie!" << endl; system("pause"); goto menu;} else if(PEW.empty()){cout << "Nie ma dodanych slowek! Dodaj jakies..." << endl; system("pause"); goto menu;} Illustrate(PEW); getch(); goto menu;}
+            if(choice==4) {system("cls"); last=Interface_Choose(PEW, options); prev=last; goto menu;}
+            if(choice==5) {system("cls"); return last;};
         } break;
         default: {goto decide_moron;}
     }
@@ -1157,7 +746,7 @@ int Interface(vector<Word> &YE, int prev, string options[]){
 }
 int main()
 {
-    vector<Word> YE;
+    vector<Word> PEW; //abbreviation for Polish and English Words
     vector<string> outputs; //probably ill store here all the outputs for the program in a different file, so reading it wont get corrupted again
     srand(time(NULL));
     string options[5]={"<empty>", "<empty>", "<empty>", "<empty>", "<empty>"};
@@ -1167,18 +756,18 @@ int main()
     prev=Read_Opt(options);
     //prev++;
     //cout << "b" << endl;
-    if(prev==1) Read(YE, files[0], files[1]);
-    else if(prev==2) Read(YE, files[2], files[3]);
-    else if(prev==3) Read(YE, files[4], files[5]);
-    else if(prev==4) Read(YE, files[6], files[7]);
-    else if(prev==5) Read(YE, files[8], files[9]);
+    if(prev==1) Read(PEW, files[0], files[1]);
+    else if(prev==2) Read(PEW, files[2], files[3]);
+    else if(prev==3) Read(PEW, files[4], files[5]);
+    else if(prev==4) Read(PEW, files[6], files[7]);
+    else if(prev==5) Read(PEW, files[8], files[9]);
     //cout << prev << " " << ue;
     //cout << options[prev-1];
     cout << "W razie potrzeby zwieksz rozmiar okna aby program lepiej wygladal XD" << "\n";
     system("pause");
     //else Read(YE, "POL.txt", "ENG.txt");
     //maybe implement here, that the program remembers what were the last revised words, prolly in that options file as well
-    prev=Interface(YE, prev, options);
+    prev=Interface(PEW, prev, options);
     fstream what;
     what.open("what.txt", ios::out);
     what << prev;
@@ -1192,6 +781,8 @@ int main()
 //fix that output weirdo in naming categories [DONE]
 //new problem, prev-1 goes out of bound for cout when user launches for the first time, fix this [FIXED (probably)]
 //display that user have not added any words when trying to revise or view them [ok i guess]
-//deleting unwanted word, possibly inputed wrong (probably can be done in a matter of a single func)
 //and work on that encoding shit [hopefully everything in place]
 //less than 5 words in Revise() causes problems [NOT ANYMORE]
+//work on the Other_Ones and cout of them during Revise()
+//deleting unwanted word, possibly inputed wrong (probably can be done in a matter of a single func)
+//optimized the code so that there are only single funcs to display each cases of the menus
