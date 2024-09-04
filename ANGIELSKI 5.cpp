@@ -222,7 +222,7 @@ int Read_Opt(string options[]){
 void Remove_the_Word(vector<Word> PEW, string file_name_p, string file_name_n, int line_n){ //work on this, bc it doesn't erase the last word supposedly already erased...
     fstream file_p;
     fstream file_e;
-    string one_line;
+    string one_line="";
     file_p.open(file_name_p.c_str(), ios::out);
     if (!file_p.good()) {
         cerr << "Nie mozna otworzyc pliku" << endl;
@@ -235,7 +235,7 @@ void Remove_the_Word(vector<Word> PEW, string file_name_p, string file_name_n, i
     }
     int j=0;
     for(int i=0; i<PEW.size(); i++){
-        if(i==line_n){continue;}
+        if(i==line_n-1){continue;}
         while(j<PEW.at(i).eng_words.size()){
             one_line=one_line+PEW.at(i).eng_words.at(j)+separate_the_words_in_the_file+' ';
             j++;
@@ -681,6 +681,7 @@ void Removing_Quest(vector<Word> &PEW, int prev){
     }
     Remove_the_Word(PEW, files[(2*prev)-2], files[(2*prev)-1], THAT);
     PEW.erase(PEW.begin()+THAT-1); //im scared if this crashes
+    THAT=0;
 }
 int Interface_Choose(vector<Word> &PEW, string options[]){
     int capa=60; //length of the window
