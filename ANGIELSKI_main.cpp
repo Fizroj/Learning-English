@@ -58,8 +58,20 @@ class Word
     }
     void Other_Ones(string ANS){
         int NUM=eng_words.size(); //number of possible English words to choose from
-        for(int i=0; i<NUM; i++){
-            if(eng_words.at(i)!=ANS) cout << eng_words.at(i) << ", ";
+        if(eng_words.size()==1){
+            cout << eng_words.front() << ".";
+        }
+        else if(eng_words.back()!=ANS){
+            for(int i=0; i<NUM-1; i++){
+                if(eng_words.at(i)!=ANS) cout << eng_words.at(i) << ", ";
+            }
+            cout << eng_words.back() << ".";
+        }
+        else{
+            for(int i=0; i<NUM-2; i++){
+                if(eng_words.at(i)!=ANS) cout << eng_words.at(i) << ", ";
+            }
+            cout << eng_words.at(NUM-2) << ".";
         }
         cout << endl;
     }
@@ -282,14 +294,22 @@ void Revise(vector<Word> PEW){
         //cout << been_already.size();
         ans=PEW.at(que).Ask();
         if(ans=="X"){break;}
-        if(PEW.at(que).Check(ans)){
+        if(PEW.at(que).Check(ans) && PEW.at(que).eng_words.size()==1){
+            cout << "Dobra odpowiedz!";
+        }
+        else if(PEW.at(que).Check(ans) && PEW.at(que).eng_words.size()>1){
             cout << "Dobra odpowiedz! Inne poprawne odpowiedzi: ";
             PEW.at(que).Other_Ones(ans);
+        }
+        else if(!PEW.at(que).Check(ans) && PEW.at(que).eng_words.size()==1){
+            cout << "To nie to... Poprawna odpowiedz to: ";
+            PEW.at(que).Other_Ones("X");
         }
         else{
             cout << "To nie to... Poprawne odpowiedzi to: ";
             PEW.at(que).Other_Ones("X");
         }
+        cout << endl;
     }
 }
 void Add(vector<Word> &YE, string filepol, string fileeng){
