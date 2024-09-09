@@ -156,7 +156,8 @@ int Read_Opt(string options[]){
     fstream file_opt;
     fstream what;
     int previous=0; //previous words used by the user
-    string previous_s;
+    char previous_char;
+    char previous_char_2;
     file_opt.open("Options.txt", ios::out | ios::app);
     if(!file_opt.good()){
         cerr << "Nie udalo sie otworzyc pliku";
@@ -176,13 +177,15 @@ int Read_Opt(string options[]){
     }
     string line;
     while(getline(what, line)){
-            previous_s=line;
-            if(previous_s=="1") previous=1;
-            else if(previous_s=="2") previous=2;
-            else if(previous_s=="3") previous=3;
-            else if(previous_s=="4") previous=4;
-            else if(previous_s=="5") previous=5;
-            else previous=0;
+            previous_char=line[0];
+            switch(previous_char){
+                case '1': {previous=1; break;}
+                case '2': {previous=2; break;}
+                case '3': {previous=3; break;}
+                case '4': {previous=4; break;}
+                case '5': {previous=5; break;}
+                default:  {previous=0; break;}
+            }
     }
     what.close();
     file_opt.open("Options.txt", ios::in);
@@ -804,6 +807,6 @@ int main()
 //display that user have not added any words when trying to revise or view them [ok i guess]
 //and work on that encoding shit [hopefully everything in place]
 //less than 5 words in Revise() causes problems [NOT ANYMORE]
-//work on the Other_Ones and cout of them during Revise()
-//deleting unwanted word, possibly inputed wrong (probably can be done in a matter of a single func)
+//work on the Other_Ones and cout of them during Revise() [GOT IT]
+//deleting unwanted word, possibly inputed wrong (probably can be done in a matter of a single func) [DONE]
 //optimized the code so that there are only single funcs to display each cases of the menus
